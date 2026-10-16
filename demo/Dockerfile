@@ -1,4 +1,4 @@
-# Stage 1: Build the application using Maven
+# Stage 1: Build the Spring Boot application using Maven
 FROM eclipse-temurin:21-jdk-jammy AS build
 WORKDIR /app
 
@@ -8,6 +8,8 @@ RUN chmod +x mvnw
 RUN ./mvnw dependency:go-offline
 
 COPY src ./src
+
+# Maven will automatically bundle everything inside src/main/resources/static into the final JAR
 RUN ./mvnw clean package -DskipTests
 
 # Stage 2: Run the application
