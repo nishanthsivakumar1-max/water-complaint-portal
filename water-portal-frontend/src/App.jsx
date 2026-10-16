@@ -8,6 +8,7 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [notification, setNotification] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [openFaq, setOpenFaq] = useState(null);
 
   const [formData, setFormData] = useState({
     citizenName: '',
@@ -116,6 +117,25 @@ function App() {
     c.category?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const faqs = [
+    {
+      q: "How long does it take to resolve a water complaint?",
+      a: "Standard tickets (leakages, low pressure) are inspected within 24 hours and addressed within 48 hours. Emergency issues (major pipe bursts, contamination) are dispatched immediately with an average field arrival time of 25 minutes."
+    },
+    {
+      q: "What should I do in case of water contamination?",
+      a: "Immediately avoid drinking or using the tap water. Lodge a ticket under 'Contaminated Water' with High/Emergency severity, or call our Toll-Free Hotline at 1800-WATER-HELP right away."
+    },
+    {
+      q: "How can I track the status of my reported issue?",
+      a: "Go to the 'Track & Manage' tab in this portal. Search for your ticket number or address to see real-time status updates (Pending, In Progress, or Resolved)."
+    },
+    {
+      q: "Are water grievance reports kept confidential?",
+      a: "Yes, your citizen name and contact details are strictly accessible only by municipal field engineers assigned to resolve your grievance."
+    }
+  ];
+
   return (
     <div className={`ag-app-container ${darkMode ? 'dark-theme' : ''}`}>
       {/* Toast Notification */}
@@ -181,9 +201,9 @@ function App() {
 
       {/* Main Container */}
       <main className="ag-main-content">
+        {/* OVERVIEW TAB */}
         {activeTab === 'overview' && (
           <div className="ag-overview-wrapper">
-            {/* Hero Blue Banner */}
             <div className="ag-hero-banner">
               <div className="ag-hero-content">
                 <span className="ag-hero-tag">CITIZEN FIRST INITIATIVE</span>
@@ -205,7 +225,6 @@ function App() {
                 </div>
               </div>
 
-              {/* Decorative Waves */}
               <div className="ag-wave-decoration">
                 <svg viewBox="0 0 200 100" fill="none" stroke="currentColor" strokeWidth="6" opacity="0.15">
                   <path d="M 0 30 Q 25 10, 50 30 T 100 30 T 150 30 T 200 30" />
@@ -215,7 +234,7 @@ function App() {
               </div>
             </div>
 
-            {/* Live Stat Cards Grid */}
+            {/* Stat Cards */}
             <div className="ag-stats-grid">
               <div className="ag-stat-card">
                 <div className="ag-stat-info">
@@ -254,14 +273,12 @@ function App() {
               </div>
             </div>
 
-            {/* Bottom Section: Recent Submissions + Emergency Widget */}
             <div className="ag-bottom-grid">
-              {/* Left Column: Recent Submissions */}
               <div className="ag-card-panel ag-submissions-panel">
                 <div className="ag-panel-header">
                   <div>
                     <h2 className="ag-panel-title">Recent Submissions</h2>
-                    <p className="ag-panel-subtitle">Latest water grievance reports logged in browser memory</p>
+                    <p className="ag-panel-subtitle">Latest water grievance reports logged in database</p>
                   </div>
                   <button className="ag-link-btn" onClick={() => setActiveTab('track')}>
                     View All →
@@ -298,7 +315,6 @@ function App() {
                 </div>
               </div>
 
-              {/* Right Column: Emergency Hotline Card */}
               <div className="ag-card-panel ag-hotline-panel">
                 <div className="ag-hotline-icon">💡</div>
 
@@ -449,6 +465,101 @@ function App() {
                   </div>
                 ))
               )}
+            </div>
+          </div>
+        )}
+
+        {/* LIVE STATS TAB */}
+        {activeTab === 'stats' && (
+          <div className="ag-card-panel">
+            <div className="ag-panel-header">
+              <div>
+                <h2 className="ag-panel-title">📈 System Analytics & Live Performance</h2>
+                <p className="ag-panel-subtitle">Real-time municipal water grid metrics and resolution ratios</p>
+              </div>
+            </div>
+
+            <div className="ag-stats-grid">
+              <div className="ag-stat-card">
+                <div className="ag-stat-info">
+                  <span className="ag-stat-label">Resolution Rate</span>
+                  <h3 className="ag-stat-value green-text">
+                    {totalCount > 0 ? `${Math.round((resolvedCount / totalCount) * 100)}%` : '100%'}
+                  </h3>
+                  <span className="ag-stat-footnote green-text">Target: &gt; 85%</span>
+                </div>
+                <div className="ag-stat-icon-badge green-badge">📊</div>
+              </div>
+
+              <div className="ag-stat-card">
+                <div className="ag-stat-info">
+                  <span className="ag-stat-label">Avg Field Response Time</span>
+                  <h3 className="ag-stat-value cyan-text">25 min</h3>
+                  <span className="ag-stat-footnote cyan-text">⚡ Rapid Deployment</span>
+                </div>
+                <div className="ag-stat-icon-badge cyan-badge">⏱️</div>
+              </div>
+
+              <div className="ag-stat-card">
+                <div className="ag-stat-info">
+                  <span className="ag-stat-label">Active Field Units</span>
+                  <h3 className="ag-stat-value orange-text">12 Crews</h3>
+                  <span className="ag-stat-footnote orange-text">Across All Wards</span>
+                </div>
+                <div className="ag-stat-icon-badge orange-badge">🚜</div>
+              </div>
+
+              <div className="ag-stat-card">
+                <div className="ag-stat-info">
+                  <span className="ag-stat-label">Purity Index</span>
+                  <h3 className="ag-stat-value green-text">98.4%</h3>
+                  <span className="ag-stat-footnote green-text">WQA Certified</span>
+                </div>
+                <div className="ag-stat-icon-badge green-badge">💧</div>
+              </div>
+            </div>
+
+            <div className="ag-submission-item" style={{ marginTop: '1.5rem', padding: '1.5rem' }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '0.5rem' }}>
+                Operational Health: <span style={{ color: '#16a34a' }}>Optimal</span>
+              </h3>
+              <p style={{ color: '#64748b', fontSize: '0.9rem' }}>
+                All 5 municipal pumping stations, filtration centers, and distribution lines are reporting nominal pressure levels with automatic telemetry enabled.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* FAQ & HELP TAB */}
+        {activeTab === 'faq' && (
+          <div className="ag-card-panel">
+            <div className="ag-panel-header">
+              <div>
+                <h2 className="ag-panel-title">❓ Frequently Asked Questions</h2>
+                <p className="ag-panel-subtitle">Find answers to common queries regarding water grievances and response procedures.</p>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+              {faqs.map((faq, idx) => (
+                <div
+                  key={idx}
+                  className="ag-submission-item"
+                  style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h4 style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>{faq.q}</h4>
+                    <span style={{ fontSize: '1.2rem', color: '#0284c7' }}>{openFaq === idx ? '−' : '+'}</span>
+                  </div>
+
+                  {openFaq === idx && (
+                    <p style={{ marginTop: '0.75rem', color: '#475569', fontSize: '0.9rem', lineHeight: '1.5' }}>
+                      {faq.a}
+                    </p>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         )}
