@@ -27,12 +27,13 @@ function App() {
 
   const fetchComplaints = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/complaints');
+      const response = await fetch('/api/complaints');
       if (response.ok) {
         const data = await response.json();
         setComplaints(data);
       }
     } catch (error) {
+      console.error('Error fetching complaints:', error);
       showToast('Could not reach backend service', 'error');
     }
   };
@@ -44,22 +45,17 @@ function App() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:8080/api/complaints', {
+      const response = await fetch('/api/complaints', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
       if (response.ok) {
-        showToast('Complaint registered successfully! 🚀');
-        setFormData({
-          citizenName: '',
-          email: '',
-          category: 'Pipeline Leakage',
-          priority: 'MEDIUM',
-          description: '',
-          address: ''
-        });
+        showToast('Complaint broadcasted successfully! 🚀');
+        setFormData({ citizenName: '', email: '', category: 'Pipeline Leakage', priority: 'MEDIUM', description: '', address: '' });
         fetchComplaints();
+      } else {
+        showToast('Submission failed. Check backend connection.', 'error');
       }
     } catch (error) {
       showToast('Submission failed. Check backend connection.', 'error');
@@ -68,7 +64,7 @@ function App() {
 
   const updateStatus = async (id, newStatus) => {
     try {
-      const response = await fetch(`http://localhost:8080/api/complaints/${id}/status`, {
+      const response = await fetch(`/api/complaints/${id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
@@ -76,6 +72,8 @@ function App() {
       if (response.ok) {
         showToast(`Incident #${id} transitioned to ${newStatus}`);
         fetchComplaints();
+      } else {
+        showToast('Failed to modify status', 'error');
       }
     } catch (error) {
       showToast('Failed to modify status', 'error');
