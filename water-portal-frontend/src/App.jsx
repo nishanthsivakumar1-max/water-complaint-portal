@@ -6,6 +6,7 @@ function App() {
   const [filterCategory, setFilterCategory] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [notification, setNotification] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
     citizenName: '',
@@ -44,6 +45,7 @@ function App() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
     try {
       const response = await fetch('/api/complaints', {
         method: 'POST',
@@ -52,13 +54,22 @@ function App() {
       });
       if (response.ok) {
         showToast('Complaint broadcasted successfully! 🚀');
-        setFormData({ citizenName: '', email: '', category: 'Pipeline Leakage', priority: 'MEDIUM', description: '', address: '' });
+        setFormData({
+          citizenName: '',
+          email: '',
+          category: 'Pipeline Leakage',
+          priority: 'MEDIUM',
+          description: '',
+          address: ''
+        });
         fetchComplaints();
       } else {
         showToast('Submission failed. Check backend connection.', 'error');
       }
     } catch (error) {
       showToast('Submission failed. Check backend connection.', 'error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -70,7 +81,7 @@ function App() {
         body: JSON.stringify({ status: newStatus })
       });
       if (response.ok) {
-        showToast(`Incident #${id} transitioned to ${newStatus}`);
+        showToast(`Incident #${id} updated to ${newStatus}`);
         fetchComplaints();
       } else {
         showToast('Failed to modify status', 'error');
@@ -82,37 +93,40 @@ function App() {
 
   // Metrics
   const totalCount = complaints.length;
-  const pendingCount = complaints.filter(c => c.status === 'PENDING').length;
-  const inProgressCount = complaints.filter(c => c.status === 'IN_PROGRESS').length;
-  const resolvedCount = complaints.filter(c => c.status === 'RESOLVED').length;
+  const pendingCount = complaints.filter((c) => c.status === 'PENDING').length;
+  const inProgressCount = complaints.filter((c) => c.status === 'IN_PROGRESS').length;
+  const resolvedCount = complaints.filter((c) => c.status === 'RESOLVED').length;
 
   // Filter & Search Logic
-  const filteredComplaints = complaints.filter(c => {
+  const filteredComplaints = complaints.filter((c) => {
     const matchesCategory = filterCategory === 'ALL' || c.category === filterCategory;
-    const matchesSearch = c.citizenName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          c.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          c.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch =
+      c.citizenName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.address?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.description?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
   return (
     <div className="glass-dashboard">
-      {/* Ambient Background Glow Blobs */}
+      {/* Dynamic Ambient Background Blobs */}
       <div className="blob blob-1"></div>
       <div className="blob blob-2"></div>
       <div className="blob blob-3"></div>
 
-      {/* Floating Notification */}
+      {/* Floating Notification Toast */}
       {notification && (
         <div className={`glass-toast ${notification.type}`}>
-          <span>✨ {notification.message}</span>
+          <span>{notification.type === 'error' ? '⚠️' : '✨'} {notification.message}</span>
         </div>
       )}
 
-      {/* Top Glass Navbar / Header */}
+      {/* Header Banner */}
       <header className="glass-nav">
         <div className="nav-brand">
-          <span className="brand-icon">💧</span>
+          <div className="brand-icon-wrapper">
+            <span className="brand-icon">💧</span>
+          </div>
           <div>
             <h1>AquaPulse Command</h1>
             <p>Smart Municipal Water Infrastructure & Incident Portal</p>
@@ -124,53 +138,70 @@ function App() {
         </div>
       </header>
 
-      {/* Analytics KPI Row */}
+      {/* Interactive Analytics KPI Row */}
       <div className="kpi-grid">
         <div className="kpi-card">
           <div className="kpi-icon total">📊</div>
-          <div>
+          <div className="kpi-data">
             <h3>{totalCount}</h3>
             <p>Total Incidents</p>
           </div>
         </div>
-        <div className="kpi-card">
+        <div className="kpi-card pending-card">
           <div className="kpi-icon pending">⏳</div>
-          <div>
+          <div className="kpi-data">
             <h3>{pendingCount}</h3>
             <p>Pending Review</p>
           </div>
         </div>
-        <div className="kpi-card">
+        <div className="kpi-card progress-card">
           <div className="kpi-icon progress">⚡</div>
-          <div>
+          <div className="kpi-data">
             <h3>{inProgressCount}</h3>
             <p>Field Crews Active</p>
           </div>
         </div>
-        <div className="kpi-card">
+        <div className="kpi-card resolved-card">
           <div className="kpi-icon resolved">✅</div>
-          <div>
+          <div className="kpi-data">
             <h3>{resolvedCount}</h3>
             <p>Successfully Resolved</p>
           </div>
         </div>
       </div>
 
-      {/* Workspace Grid */}
+      {/* Workspace Area */}
       <div className="workspace-grid">
-        
-        {/* Left Pane: Submission Form */}
+        {/* Left Form Panel */}
         <div className="glass-panel form-panel">
-          <h2>📝 Dispatch New Ticket</h2>
+          <div className="panel-header">
+            <h2>📝 Dispatch New Ticket</h2>
+            <span className="subtitle">Report water pipeline leaks, supply outages, or pressure issues</span>
+          </div>
+
           <form onSubmit={handleSubmit}>
             <div className="input-group">
               <label>Citizen Full Name</label>
-              <input type="text" name="citizenName" placeholder="e.g. Sarah Jenkins" value={formData.citizenName} onChange={handleChange} required />
+              <input
+                type="text"
+                name="citizenName"
+                placeholder="e.g. Sarah Jenkins"
+                value={formData.citizenName}
+                onChange={handleChange}
+                required
+              />
             </div>
 
             <div className="input-group">
               <label>Contact Email</label>
-              <input type="email" name="email" placeholder="sarah@example.com" value={formData.email} onChange={handleChange} required />
+              <input
+                type="email"
+                name="email"
+                placeholder="sarah@example.com"
+                value={formData.email}
+                onChange={handleChange}
+                required
+              />
             </div>
 
             <div className="input-row">
@@ -196,48 +227,69 @@ function App() {
 
             <div className="input-group">
               <label>Location / Landmark Address</label>
-              <input type="text" name="address" placeholder="104 Sector 4, Main Avenue" value={formData.address} onChange={handleChange} required />
+              <input
+                type="text"
+                name="address"
+                placeholder="104 Sector 4, Main Avenue"
+                value={formData.address}
+                onChange={handleChange}
+                required
+              />
             </div>
 
             <div className="input-group">
               <label>Detailed Observations</label>
-              <textarea name="description" placeholder="Describe leak intensity, color, or duration..." value={formData.description} onChange={handleChange} required />
+              <textarea
+                name="description"
+                placeholder="Describe leak intensity, color, or duration..."
+                value={formData.description}
+                onChange={handleChange}
+                required
+              />
             </div>
 
-            <button type="submit" className="glass-submit-btn">Broadcast Report 🚀</button>
+            <button type="submit" className="glass-submit-btn" disabled={isSubmitting}>
+              {isSubmitting ? 'Broadcasting...' : 'Broadcast Report 🚀'}
+            </button>
           </form>
         </div>
 
-        {/* Right Pane: Live Incident Feed & Search */}
+        {/* Right Incident Feed Panel */}
         <div className="glass-panel feed-panel">
           <div className="feed-top-bar">
             <h2>📡 Active Incident Streams</h2>
-            <input 
-              type="text" 
-              className="search-bar" 
-              placeholder="Search complaints by name, address..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+            <div className="search-wrapper">
+              <span className="search-icon">🔍</span>
+              <input
+                type="text"
+                className="search-bar"
+                placeholder="Search by name, landmark, description..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
           </div>
 
-          {/* Filter Pill Tabs */}
+          {/* Interactive Filter Pills */}
           <div className="filter-pills">
-            {['ALL', 'Pipeline Leakage', 'No Water Supply', 'Contaminated Water', 'Low Pressure'].map(cat => (
-              <button
-                key={cat}
-                className={`pill-btn ${filterCategory === cat ? 'active' : ''}`}
-                onClick={() => setFilterCategory(cat)}
-              >
-                {cat}
-              </button>
-            ))}
+            {['ALL', 'Pipeline Leakage', 'No Water Supply', 'Contaminated Water', 'Low Pressure'].map(
+              (cat) => (
+                <button
+                  key={cat}
+                  className={`pill-btn ${filterCategory === cat ? 'active' : ''}`}
+                  onClick={() => setFilterCategory(cat)}
+                >
+                  {cat}
+                </button>
+              )
+            )}
           </div>
 
-          {/* Feed List */}
+          {/* Stream Feed */}
           <div className="tickets-scroll-container">
             {filteredComplaints.length === 0 ? (
               <div className="empty-feed">
+                <div className="empty-icon">🌊</div>
                 <p>No active incidents found matching your criteria.</p>
               </div>
             ) : (
@@ -245,7 +297,9 @@ function App() {
                 <div key={c.id} className="ticket-card">
                   <div className="ticket-header-row">
                     <span className="ticket-tag">TICKET #{c.id}</span>
-                   <span className={`status-pill ${c.status ? c.status.toLowerCase() : 'pending'}`}>{c.status || 'PENDING'}</span>
+                    <span className={`status-pill ${c.status ? c.status.toLowerCase() : 'pending'}`}>
+                      {c.status || 'PENDING'}
+                    </span>
                   </div>
 
                   <h4>{c.category}</h4>
@@ -258,8 +312,11 @@ function App() {
                       <small>{c.email}</small>
                     </div>
                     <div className="action-selector">
-                      <label>State:</label>
-                      <select value={c.status} onChange={(e) => updateStatus(c.id, e.target.value)}>
+                      <label>Status:</label>
+                      <select
+                        value={c.status || 'PENDING'}
+                        onChange={(e) => updateStatus(c.id, e.target.value)}
+                      >
                         <option value="PENDING">PENDING</option>
                         <option value="IN_PROGRESS">IN_PROGRESS</option>
                         <option value="RESOLVED">RESOLVED</option>
@@ -271,7 +328,6 @@ function App() {
             )}
           </div>
         </div>
-
       </div>
     </div>
   );
